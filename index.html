@@ -1,426 +1,1061 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PixVibe — Gen Z Instagram Photo Editor</title>
-    <meta name="description" content="Professional Gen Z aesthetic photo editor for Instagram. Edit, crop, filter, and style your photos.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <!-- Loading Screen -->
-    <div id="loadingScreen" class="loading-screen">
-        <div class="loader-content">
-            <div class="loader-ring">
-                <div class="ring-segment"></div>
-                <div class="ring-segment"></div>
-                <div class="ring-segment"></div>
-            </div>
-            <h1 class="loader-title">PixVibe</h1>
-            <p class="loader-subtitle">Gen Z Photo Editor</p>
-        </div>
-    </div>
-    <!-- Main App -->
-    <div id="app" class="app hidden">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-left">
-                <div class="logo">
-                    <span class="logo-icon">◆</span>
-                    <span class="logo-text">PixVibe</span>
-                </div>
-            </div>
-            <div class="header-center">
-                <div id="fileName" class="file-name">No file loaded</div>
-            </div>
-            <div class="header-right">
-                <button id="btnUndo" class="header-btn" title="Undo" disabled>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6.69 3L3 13"/></svg>
-                </button>
-                <button id="btnRedo" class="header-btn" title="Redo" disabled>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 019-9 9 9 0 016.69 3L21 13"/></svg>
-                </button>
-                <button id="btnReset" class="header-btn" title="Reset">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
-                </button>
-                <div class="divider"></div>
-                <button id="btnExport" class="btn-export">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    <span>Export</span>
-                </button>
-            </div>
-        </header>
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Upload Screen -->
-            <div id="uploadScreen" class="upload-screen">
-                <div class="upload-area" id="uploadArea">
-                    <div class="upload-icon">
-                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                    </div>
-                    <h2 class="upload-title">Drop your photo here</h2>
-                    <p class="upload-subtitle">or click to browse • JPG, PNG, WebP</p>
-                    <button class="btn-upload" id="btnUpload">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                        Choose Photo
-                    </button>
-                    <input type="file" id="fileInput" accept="image/*" hidden>
-                </div>
-                <div class="upload-presets">
-                    <p class="preset-label">✨ Instagram Sizes</p>
-                    <div class="preset-chips">
-                        <span class="chip active" data-ratio="4:5">4:5 Portrait</span>
-                        <span class="chip" data-ratio="1:1">1:1 Square</span>
-                        <span class="chip" data-ratio="9:16">9:16 Story</span>
-                        <span class="chip" data-ratio="free">Free</span>
-                    </div>
-                </div>
-            </div>
-            <!-- Editor Screen -->
-            <div id="editorScreen" class="editor-screen hidden">
-                <!-- Canvas Area -->
-                <div class="canvas-wrapper">
-                    <div class="canvas-container" id="canvasContainer">
-                        <canvas id="mainCanvas"></canvas>
-                        <!-- Crop Overlay -->
-                        <div id="cropOverlay" class="crop-overlay hidden">
-                            <div class="crop-box" id="cropBox">
-                                <div class="crop-handle top-left"></div>
-                                <div class="crop-handle top-right"></div>
-                                <div class="crop-handle bottom-left"></div>
-                                <div class="crop-handle bottom-right"></div>
-                                <div class="crop-grid">
-                                    <div class="grid-line h1"></div>
-                                    <div class="grid-line h2"></div>
-                                    <div class="grid-line v1"></div>
-                                    <div class="grid-line v2"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="canvas-info">
-                        <span id="canvasSize">0 × 0</span>
-                        <span id="zoomLevel">100%</span>
-                    </div>
-                </div>
-                <!-- Right Panel -->
-                <aside class="panel">
-                    <!-- Tab Navigation -->
-                    <div class="panel-tabs">
-                        <button class="tab active" data-tab="filters" id="tabFilters">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-                            <span>Filters</span>
-                        </button>
-                        <button class="tab" data-tab="adjust" id="tabAdjust">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-                            <span>Adjust</span>
-                        </button>
-                        <button class="tab" data-tab="crop" id="tabCrop">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.13 1L6 16a2 2 0 002 2h15"/><path d="M1 6.13L16 6a2 2 0 012 2v15"/></svg>
-                            <span>Crop</span>
-                        </button>
-                        <button class="tab" data-tab="text" id="tabText">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
-                            <span>Text</span>
-                        </button>
-                    </div>
-                    <!-- Panel Content -->
-                    <div class="panel-content">
-                        <!-- Filters Tab -->
-                        <div class="tab-content active" id="filtersContent">
-                            <div class="section">
-                                <h3 class="section-title">🔥 Gen Z Presets</h3>
-                                <div class="filter-grid" id="filterGrid">
-                                    <!-- Filters will be generated by JS -->
-                                </div>
-                            </div>
-                            <div class="section">
-                                <h3 class="section-title">🎨 Color Tones</h3>
-                                <div class="filter-grid" id="toneGrid">
-                                    <!-- Tones will be generated by JS -->
-                                </div>
-                            </div>
-                            <div class="section">
-                                <h3 class="section-title">✨ Effects</h3>
-                                <div class="effect-controls">
-                                    <div class="slider-group">
-                                        <label>Film Grain</label>
-                                        <div class="slider-row">
-                                            <input type="range" id="grainSlider" min="0" max="100" value="0" class="slider">
-                                            <span class="slider-value" id="grainValue">0</span>
-                                        </div>
-                                    </div>
-                                    <div class="slider-group">
-                                        <label>Vignette</label>
-                                        <div class="slider-row">
-                                            <input type="range" id="vignetteSlider" min="0" max="100" value="0" class="slider">
-                                            <span class="slider-value" id="vignetteValue">0</span>
-                                        </div>
-                                    </div>
-                                    <div class="slider-group">
-                                        <label>Blur Background</label>
-                                        <div class="slider-row">
-                                            <input type="range" id="blurSlider" min="0" max="20" value="0" class="slider">
-                                            <span class="slider-value" id="blurValue">0</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Adjust Tab -->
-                        <div class="tab-content" id="adjustContent">
-                            <div class="section">
-                                <h3 class="section-title">💡 Light</h3>
-                                <div class="adjust-controls">
-                                    <div class="slider-group">
-                                        <label>Brightness</label>
-                                        <div class="slider-row">
-                                            <input type="range" id="brightnessSlider" min="-100" max="100" value="0" class="slider">
-                                            <span class="slider-value" id="brightnessValue">0</span>
-                                        </div>
-                                    </div>
-                                    <div class="slider-group">
-                                        <label>Contrast</label>
-                                        <div class="slider-row">
-                                            <input type="range" id="contrastSlider" min="-100" max="100" value="0" class="slider">
-                                            <span class="slider-value" id="contrastValue">0</span>
-                                        </div>
-                                    </div>
-                                    <div class="slider-group">
-                                        <label>Exposure</label>
-                                        <div class="slider-row">
-                                            <input type="range" id="exposureSlider" min="-100" max="100" value="0" class="slider">
-                                            <span class="slider-value" id="exposureValue">0</span>
-                                        </div>
-                                    </div>
-                                    <div class="slider-group">
-                                        <label>Highlights</label>
-                                        <div class="slider-row">
-                                            <input type="range" id="highlightsSlider" min="-100" max="100" value="0" class="slider">
-                                            <span class="slider-value" id="highlightsValue">0</span>
-                                        </div>
-                                    </div>
-                                    <div class="slider-group">
-                                        <label>Shadows</label>
-                                        <div class="slider-row">
-                                            <input type="range" id="shadowsSlider" min="-100" max="100" value="0" class="slider">
-                                            <span class="slider-value" id="shadowsValue">0</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="section">
-                                <h3 class="section-title">🎨 Color</h3>
-                                <div class="adjust-controls">
-                                    <div class="slider-group">
-                                        <label>Saturation</label>
-                                        <div class="slider-row">
-                                            <input type="range" id="saturationSlider" min="-100" max="100" value="0" class="slider">
-                                            <span class="slider-value" id="saturationValue">0</span>
-                                        </div>
-                                    </div>
-                                    <div class="slider-group">
-                                        <label>Temperature</label>
-                                        <div class="slider-row">
-                                            <input type="range" id="temperatureSlider" min="-100" max="100" value="0" class="slider">
-                                            <span class="slider-value" id="temperatureValue">0</span>
-                                        </div>
-                                    </div>
-                                    <div class="slider-group">
-                                        <label>Tint</label>
-                                        <div class="slider-row">
-                                            <input type="range" id="tintSlider" min="-100" max="100" value="0" class="slider">
-                                            <span class="slider-value" id="tintValue">0</span>
-                                        </div>
-                                    </div>
-                                    <div class="slider-group">
-                                        <label>Vibrance</label>
-                                        <div class="slider-row">
-                                            <input type="range" id="vibranceSlider" min="-100" max="100" value="0" class="slider">
-                                            <span class="slider-value" id="vibranceValue">0</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="section">
-                                <h3 class="section-title">🔍 Detail</h3>
-                                <div class="adjust-controls">
-                                    <div class="slider-group">
-                                        <label>Sharpness</label>
-                                        <div class="slider-row">
-                                            <input type="range" id="sharpnessSlider" min="0" max="100" value="0" class="slider">
-                                            <span class="slider-value" id="sharpnessValue">0</span>
-                                        </div>
-                                    </div>
-                                    <div class="slider-group">
-                                        <label>Clarity</label>
-                                        <div class="slider-row">
-                                            <input type="range" id="claritySlider" min="-100" max="100" value="0" class="slider">
-                                            <span class="slider-value" id="clarityValue">0</span>
-                                        </div>
-                                    </div>
-                                    <div class="slider-group">
-                                        <label>Fade</label>
-                                        <div class="slider-row">
-                                            <input type="range" id="fadeSlider" min="0" max="100" value="0" class="slider">
-                                            <span class="slider-value" id="fadeValue">0</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Crop Tab -->
-                        <div class="tab-content" id="cropContent">
-                            <div class="section">
-                                <h3 class="section-title">📐 Aspect Ratio</h3>
-                                <div class="crop-ratios">
-                                    <button class="ratio-btn active" data-ratio="4:5" id="ratio4x5">
-                                        <div class="ratio-preview" style="width:24px;height:30px;"></div>
-                                        <span>4:5</span>
-                                        <small>IG Post</small>
-                                    </button>
-                                    <button class="ratio-btn" data-ratio="1:1" id="ratio1x1">
-                                        <div class="ratio-preview" style="width:28px;height:28px;"></div>
-                                        <span>1:1</span>
-                                        <small>Square</small>
-                                    </button>
-                                    <button class="ratio-btn" data-ratio="9:16" id="ratio9x16">
-                                        <div class="ratio-preview" style="width:18px;height:32px;"></div>
-                                        <span>9:16</span>
-                                        <small>Story</small>
-                                    </button>
-                                    <button class="ratio-btn" data-ratio="16:9" id="ratio16x9">
-                                        <div class="ratio-preview" style="width:32px;height:18px;"></div>
-                                        <span>16:9</span>
-                                        <small>Wide</small>
-                                    </button>
-                                    <button class="ratio-btn" data-ratio="free" id="ratioFree">
-                                        <div class="ratio-preview free" style="width:28px;height:22px;"></div>
-                                        <span>Free</span>
-                                        <small>Custom</small>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="section">
-                                <h3 class="section-title">🔄 Transform</h3>
-                                <div class="adjust-controls">
-                                    <div class="slider-group">
-                                        <label>Rotation</label>
-                                        <div class="slider-row">
-                                            <input type="range" id="rotationSlider" min="-180" max="180" value="0" class="slider">
-                                            <span class="slider-value" id="rotationValue">0°</span>
-                                        </div>
-                                    </div>
-                                    <div class="transform-btns">
-                                        <button class="transform-btn" id="btnFlipH" title="Flip Horizontal">
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M21 3l-7 7"/><path d="M3 3l7 7"/><path d="M16 21h5v-5"/><path d="M8 21H3v-5"/><path d="M21 21l-7-7"/><path d="M3 21l7-7"/></svg>
-                                            Flip H
-                                        </button>
-                                        <button class="transform-btn" id="btnFlipV" title="Flip Vertical">
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 16v5h5"/><path d="M3 8V3h5"/><path d="M3 21l7-7"/><path d="M3 3l7 7"/><path d="M21 16v5h-5"/><path d="M21 8V3h-5"/><path d="M21 21l-7-7"/><path d="M21 3l-7 7"/></svg>
-                                            Flip V
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="section">
-                                <button class="btn-apply-crop" id="btnApplyCrop">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                    Apply Crop
-                                </button>
-                            </div>
-                        </div>
-                        <!-- Text Tab -->
-                        <div class="tab-content" id="textContent">
-                            <div class="section">
-                                <h3 class="section-title">✏️ Add Text</h3>
-                                <div class="text-controls">
-                                    <input type="text" id="textInput" class="text-input" placeholder="Type your text...">
-                                    <div class="text-options">
-                                        <div class="slider-group">
-                                            <label>Size</label>
-                                            <div class="slider-row">
-                                                <input type="range" id="textSizeSlider" min="12" max="120" value="32" class="slider">
-                                                <span class="slider-value" id="textSizeValue">32</span>
-                                            </div>
-                                        </div>
-                                        <div class="color-row">
-                                            <label>Color</label>
-                                            <input type="color" id="textColor" value="#ffffff" class="color-picker">
-                                        </div>
-                                        <div class="font-select-group">
-                                            <label>Font</label>
-                                            <select id="fontSelect" class="font-select">
-                                                <option value="Inter">Inter</option>
-                                                <option value="Space Grotesk">Space Grotesk</option>
-                                                <option value="Georgia">Georgia</option>
-                                                <option value="Courier New">Courier New</option>
-                                            </select>
-                                        </div>
-                                        <div class="text-style-btns">
-                                            <button class="style-btn" id="btnBold" title="Bold">B</button>
-                                            <button class="style-btn" id="btnItalic" title="Italic"><em>I</em></button>
-                                            <button class="style-btn" id="btnShadow" title="Shadow">S</button>
-                                        </div>
-                                    </div>
-                                    <button class="btn-add-text" id="btnAddText">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                                        Add Text to Photo
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </aside>
-            </div>
-        </main>
-        <!-- Export Modal -->
-        <div id="exportModal" class="modal hidden">
-            <div class="modal-overlay" id="modalOverlay"></div>
-            <div class="modal-content">
-                <h2 class="modal-title">Export Photo</h2>
-                <div class="export-options">
-                    <div class="export-format">
-                        <label>Format</label>
-                        <div class="format-btns">
-                            <button class="format-btn active" data-format="png" id="fmtPng">PNG</button>
-                            <button class="format-btn" data-format="jpeg" id="fmtJpeg">JPEG</button>
-                            <button class="format-btn" data-format="webp" id="fmtWebp">WebP</button>
-                        </div>
-                    </div>
-                    <div class="export-quality" id="qualitySection">
-                        <label>Quality</label>
-                        <div class="slider-row">
-                            <input type="range" id="qualitySlider" min="10" max="100" value="95" class="slider">
-                            <span class="slider-value" id="qualityValue">95%</span>
-                        </div>
-                    </div>
-                    <div class="export-size">
-                        <label>Size Preset</label>
-                        <div class="size-btns">
-                            <button class="size-btn active" data-size="original" id="sizeOriginal">Original</button>
-                            <button class="size-btn" data-size="1080" id="size1080">1080px (IG)</button>
-                            <button class="size-btn" data-size="2048" id="size2048">2048px (HQ)</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-actions">
-                    <button class="btn-cancel" id="btnCancelExport">Cancel</button>
-                    <button class="btn-download" id="btnDownload">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                        Download
-                    </button>
-                </div>
-            </div>
-        </div>
-        <!-- Compare toggle -->
-        <button id="btnCompare" class="btn-compare hidden" title="Hold to see original">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
-        </button>
-    </div>
-    <script src="app.js"></script>
-</body>
-</html>
+/* ========================================
+   PixVibe — Gen Z Instagram Photo Editor
+   Main Application Engine
+   ======================================== */
+(function () {
+    'use strict';
+    // ==========================================
+    // State
+    // ==========================================
+    const state = {
+        originalImage: null,
+        currentImage: null,
+        canvas: null,
+        ctx: null,
+        fileName: 'Untitled',
+        aspectRatio: '4:5',
+        activeFilter: 'none',
+        activeTone: 'none',
+        adjustments: {
+            brightness: 0,
+            contrast: 0,
+            exposure: 0,
+            highlights: 0,
+            shadows: 0,
+            saturation: 0,
+            temperature: 0,
+            tint: 0,
+            vibrance: 0,
+            sharpness: 0,
+            clarity: 0,
+            fade: 0,
+            grain: 0,
+            vignette: 0,
+            blur: 0
+        },
+        rotation: 0,
+        flipH: false,
+        flipV: false,
+        texts: [],
+        textSettings: {
+            text: '',
+            size: 32,
+            color: '#ffffff',
+            font: 'Inter',
+            bold: false,
+            italic: false,
+            shadow: false
+        },
+        history: [],
+        historyIndex: -1,
+        exportFormat: 'png',
+        exportQuality: 0.95,
+        exportSize: 'original',
+        isComparing: false
+    };
+    // ==========================================
+    // Filter Presets
+    // ==========================================
+    const FILTERS = [
+        { id: 'none', name: 'Original', settings: {} },
+        {
+            id: 'golden', name: 'Golden', settings: {
+                brightness: 10, contrast: 15, saturation: -10,
+                temperature: 30, highlights: -10, shadows: 15,
+                fade: 8, vignette: 20
+            }
+        },
+        {
+            id: 'moody', name: 'Moody', settings: {
+                brightness: -10, contrast: 30, saturation: -25,
+                temperature: -5, tint: 5, shadows: -15,
+                fade: 15, vignette: 35, grain: 12
+            }
+        },
+        {
+            id: 'teal_orange', name: 'Teal & Orange', settings: {
+                brightness: 5, contrast: 20, saturation: 10,
+                temperature: 20, tint: -10, vibrance: 20,
+                vignette: 15
+            }
+        },
+        {
+            id: 'vintage', name: 'Vintage', settings: {
+                brightness: 5, contrast: -5, saturation: -30,
+                temperature: 15, fade: 25, grain: 25,
+                vignette: 20, highlights: 10
+            }
+        },
+        {
+            id: 'aesthetic', name: 'Aesthetic', settings: {
+                brightness: 8, contrast: 10, saturation: -15,
+                temperature: 10, tint: -5, fade: 10,
+                clarity: 15, vignette: 10
+            }
+        },
+        {
+            id: 'film', name: 'Film', settings: {
+                brightness: 0, contrast: 25, saturation: -20,
+                temperature: 5, fade: 20, grain: 30,
+                vignette: 25, shadows: 10
+            }
+        },
+        {
+            id: 'dreamy', name: 'Dreamy', settings: {
+                brightness: 15, contrast: -10, saturation: -5,
+                temperature: 20, highlights: 20, fade: 15,
+                vignette: 10, blur: 1
+            }
+        },
+        {
+            id: 'dark', name: 'Dark', settings: {
+                brightness: -15, contrast: 35, saturation: -10,
+                shadows: -20, fade: 5, vignette: 40,
+                clarity: 20, grain: 8
+            }
+        },
+        {
+            id: 'clean', name: 'Clean', settings: {
+                brightness: 12, contrast: 8, saturation: 5,
+                highlights: -5, shadows: 10, clarity: 20,
+                sharpness: 15
+            }
+        }
+    ];
+    const TONES = [
+        { id: 'tone_none', name: 'None', color: null },
+        { id: 'tone_warm', name: 'Warm', color: [255, 165, 0, 0.08] },
+        { id: 'tone_cool', name: 'Cool', color: [0, 128, 255, 0.08] },
+        { id: 'tone_pink', name: 'Pink', color: [255, 105, 180, 0.08] },
+        { id: 'tone_teal', name: 'Teal', color: [0, 180, 180, 0.08] },
+        { id: 'tone_amber', name: 'Amber', color: [255, 140, 0, 0.1] },
+        { id: 'tone_purple', name: 'Purple', color: [160, 80, 255, 0.08] },
+        { id: 'tone_green', name: 'Forest', color: [50, 160, 80, 0.07] },
+        { id: 'tone_sepia', name: 'Sepia', color: [180, 130, 70, 0.12] }
+    ];
+    // ==========================================
+    // DOM Elements
+    // ==========================================
+    let dom = {};
+    function cacheDom() {
+        dom = {
+            loadingScreen: document.getElementById('loadingScreen'),
+            app: document.getElementById('app'),
+            uploadScreen: document.getElementById('uploadScreen'),
+            editorScreen: document.getElementById('editorScreen'),
+            uploadArea: document.getElementById('uploadArea'),
+            fileInput: document.getElementById('fileInput'),
+            btnUpload: document.getElementById('btnUpload'),
+            fileName: document.getElementById('fileName'),
+            mainCanvas: document.getElementById('mainCanvas'),
+            canvasContainer: document.getElementById('canvasContainer'),
+            canvasSize: document.getElementById('canvasSize'),
+            zoomLevel: document.getElementById('zoomLevel'),
+            filterGrid: document.getElementById('filterGrid'),
+            toneGrid: document.getElementById('toneGrid'),
+            btnExport: document.getElementById('btnExport'),
+            btnReset: document.getElementById('btnReset'),
+            btnUndo: document.getElementById('btnUndo'),
+            btnRedo: document.getElementById('btnRedo'),
+            btnCompare: document.getElementById('btnCompare'),
+            exportModal: document.getElementById('exportModal'),
+            modalOverlay: document.getElementById('modalOverlay'),
+            btnCancelExport: document.getElementById('btnCancelExport'),
+            btnDownload: document.getElementById('btnDownload'),
+            btnAddText: document.getElementById('btnAddText'),
+            btnFlipH: document.getElementById('btnFlipH'),
+            btnFlipV: document.getElementById('btnFlipV'),
+            btnApplyCrop: document.getElementById('btnApplyCrop'),
+            btnBold: document.getElementById('btnBold'),
+            btnItalic: document.getElementById('btnItalic'),
+            btnShadow: document.getElementById('btnShadow'),
+            textInput: document.getElementById('textInput'),
+            textColor: document.getElementById('textColor'),
+            fontSelect: document.getElementById('fontSelect'),
+            qualitySection: document.getElementById('qualitySection')
+        };
+        // Sliders
+        const sliderNames = [
+            'brightness', 'contrast', 'exposure', 'highlights', 'shadows',
+            'saturation', 'temperature', 'tint', 'vibrance',
+            'sharpness', 'clarity', 'fade', 'grain', 'vignette', 'blur',
+            'rotation', 'textSize', 'quality'
+        ];
+        sliderNames.forEach(name => {
+            const sliderId = name + 'Slider';
+            const valueId = name + 'Value';
+            const el = document.getElementById(sliderId);
+            const valEl = document.getElementById(valueId);
+            if (el) dom[sliderId] = el;
+            if (valEl) dom[valueId] = valEl;
+        });
+        state.canvas = dom.mainCanvas;
+        state.ctx = dom.mainCanvas.getContext('2d', { willReadFrequently: true });
+    }
+    // ==========================================
+    // Initialization
+    // ==========================================
+    function init() {
+        cacheDom();
+        setupLoadingScreen();
+        setupUpload();
+        setupTabs();
+        setupFilters();
+        setupTones();
+        setupSliders();
+        setupCrop();
+        setupTransform();
+        setupText();
+        setupExport();
+        setupCompare();
+        setupResetUndoRedo();
+        setupChips();
+    }
+    function setupLoadingScreen() {
+        setTimeout(() => {
+            dom.loadingScreen.style.display = 'none';
+            dom.app.classList.remove('hidden');
+        }, 2200);
+    }
+    // ==========================================
+    // Upload
+    // ==========================================
+    function setupUpload() {
+        dom.btnUpload.addEventListener('click', () => dom.fileInput.click());
+        dom.uploadArea.addEventListener('click', (e) => {
+            if (e.target !== dom.btnUpload && !dom.btnUpload.contains(e.target)) {
+                dom.fileInput.click();
+            }
+        });
+        dom.fileInput.addEventListener('change', handleFile);
+        // Drag & Drop
+        dom.uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dom.uploadArea.classList.add('drag-over');
+        });
+        dom.uploadArea.addEventListener('dragleave', () => {
+            dom.uploadArea.classList.remove('drag-over');
+        });
+        dom.uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dom.uploadArea.classList.remove('drag-over');
+            if (e.dataTransfer.files.length) {
+                loadImage(e.dataTransfer.files[0]);
+            }
+        });
+    }
+    function handleFile(e) {
+        if (e.target.files.length) {
+            loadImage(e.target.files[0]);
+        }
+    }
+    function loadImage(file) {
+        if (!file.type.startsWith('image/')) return;
+        state.fileName = file.name;
+        dom.fileName.textContent = file.name;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                state.originalImage = img;
+                state.currentImage = img;
+                showEditor();
+                renderCanvas();
+                generateFilterPreviews();
+                generateTonePreviews();
+                saveHistory();
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+    function showEditor() {
+        dom.uploadScreen.classList.add('hidden');
+        dom.editorScreen.classList.remove('hidden');
+        dom.btnCompare.classList.remove('hidden');
+    }
+    // ==========================================
+    // Tabs
+    // ==========================================
+    function setupTabs() {
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                const content = document.getElementById(tab.dataset.tab + 'Content');
+                if (content) content.classList.add('active');
+            });
+        });
+    }
+    // ==========================================
+    // Chips (aspect ratio on upload)
+    // ==========================================
+    function setupChips() {
+        document.querySelectorAll('.chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                state.aspectRatio = chip.dataset.ratio;
+            });
+        });
+    }
+    // ==========================================
+    // Canvas Rendering
+    // ==========================================
+    function renderCanvas() {
+        if (!state.originalImage) return;
+        const img = state.originalImage;
+        const canvas = state.canvas;
+        const ctx = state.ctx;
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        ctx.save();
+        // Transforms
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate((state.rotation * Math.PI) / 180);
+        ctx.scale(state.flipH ? -1 : 1, state.flipV ? -1 : 1);
+        ctx.translate(-canvas.width / 2, -canvas.height / 2);
+        // Draw base image
+        ctx.drawImage(img, 0, 0);
+        ctx.restore();
+        // Apply pixel adjustments
+        applyAdjustments(ctx, canvas);
+        // Apply tone overlay
+        applyToneOverlay(ctx, canvas);
+        // Apply vignette
+        if (state.adjustments.vignette > 0) {
+            applyVignette(ctx, canvas);
+        }
+        // Apply grain
+        if (state.adjustments.grain > 0) {
+            applyGrain(ctx, canvas);
+        }
+        // Apply blur
+        if (state.adjustments.blur > 0) {
+            applyBlurEffect(ctx, canvas);
+        }
+        // Draw texts
+        drawTexts(ctx, canvas);
+        // Update info
+        dom.canvasSize.textContent = `${canvas.width} × ${canvas.height}`;
+    }
+    function applyAdjustments(ctx, canvas) {
+        const adj = state.adjustments;
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        const brightness = adj.brightness / 100;
+        const contrast = (adj.contrast + 100) / 100;
+        const exposure = Math.pow(2, adj.exposure / 100);
+        const saturation = (adj.saturation + 100) / 100;
+        const temperature = adj.temperature / 100;
+        const tint = adj.tint / 100;
+        const vibrance = adj.vibrance / 200;
+        const fade = adj.fade / 100;
+        const highlights = adj.highlights / 100;
+        const shadows = adj.shadows / 100;
+        const clarity = adj.clarity / 100;
+        for (let i = 0; i < data.length; i += 4) {
+            let r = data[i];
+            let g = data[i + 1];
+            let b = data[i + 2];
+            // Exposure
+            r *= exposure;
+            g *= exposure;
+            b *= exposure;
+            // Brightness
+            r += brightness * 255;
+            g += brightness * 255;
+            b += brightness * 255;
+            // Contrast
+            r = ((r / 255 - 0.5) * contrast + 0.5) * 255;
+            g = ((g / 255 - 0.5) * contrast + 0.5) * 255;
+            b = ((b / 255 - 0.5) * contrast + 0.5) * 255;
+            // Temperature (warm = more red/yellow, cool = more blue)
+            r += temperature * 30;
+            b -= temperature * 30;
+            // Tint
+            g += tint * 20;
+            // Highlights & Shadows
+            const luminance = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+            if (luminance > 0.5) {
+                const factor = (luminance - 0.5) * 2 * highlights;
+                r += factor * 40;
+                g += factor * 40;
+                b += factor * 40;
+            } else {
+                const factor = (0.5 - luminance) * 2 * shadows;
+                r += factor * 30;
+                g += factor * 30;
+                b += factor * 30;
+            }
+            // Saturation
+            const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+            r = gray + saturation * (r - gray);
+            g = gray + saturation * (g - gray);
+            b = gray + saturation * (b - gray);
+            // Vibrance (saturate less-saturated colors more)
+            if (vibrance !== 0) {
+                const max = Math.max(r, g, b);
+                const avg = (r + g + b) / 3;
+                const amt = ((max - avg) / 255) * (-vibrance * 3);
+                r += (max - r) * amt;
+                g += (max - g) * amt;
+                b += (max - b) * amt;
+            }
+            // Clarity (local contrast)
+            if (clarity > 0) {
+                const mid = 128;
+                r += (r - mid) * clarity * 0.3;
+                g += (g - mid) * clarity * 0.3;
+                b += (b - mid) * clarity * 0.3;
+            }
+            // Fade (lift blacks)
+            if (fade > 0) {
+                const fadeAmount = fade * 60;
+                r = r + (fadeAmount - r) * fade * 0.3;
+                g = g + (fadeAmount - g) * fade * 0.3;
+                b = b + (fadeAmount - b) * fade * 0.3;
+            }
+            // Clamp
+            data[i] = Math.max(0, Math.min(255, r));
+            data[i + 1] = Math.max(0, Math.min(255, g));
+            data[i + 2] = Math.max(0, Math.min(255, b));
+        }
+        ctx.putImageData(imageData, 0, 0);
+        // Sharpness (unsharp mask approximation using canvas filter)
+        if (adj.sharpness > 0) {
+            const amount = adj.sharpness / 100;
+            ctx.globalCompositeOperation = 'overlay';
+            ctx.globalAlpha = amount * 0.4;
+            ctx.drawImage(canvas, 0, 0);
+            ctx.globalAlpha = 1;
+            ctx.globalCompositeOperation = 'source-over';
+        }
+    }
+    function applyToneOverlay(ctx, canvas) {
+        const tone = TONES.find(t => t.id === state.activeTone);
+        if (!tone || !tone.color) return;
+        const [r, g, b, a] = tone.color;
+        ctx.globalCompositeOperation = 'color';
+        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${a * 4})`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.globalCompositeOperation = 'source-over';
+    }
+    function applyVignette(ctx, canvas) {
+        const strength = state.adjustments.vignette / 100;
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+        const radius = Math.max(cx, cy) * 1.2;
+        const gradient = ctx.createRadialGradient(cx, cy, radius * 0.3, cx, cy, radius);
+        gradient.addColorStop(0, 'rgba(0,0,0,0)');
+        gradient.addColorStop(0.7, `rgba(0,0,0,${strength * 0.3})`);
+        gradient.addColorStop(1, `rgba(0,0,0,${strength * 0.8})`);
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    function applyGrain(ctx, canvas) {
+        const intensity = state.adjustments.grain / 100;
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        // Use a simple random noise approach - process every 2nd pixel for performance
+        for (let i = 0; i < data.length; i += 8) {
+            const noise = (Math.random() - 0.5) * intensity * 80;
+            data[i] += noise;
+            data[i + 1] += noise;
+            data[i + 2] += noise;
+            // Copy to adjacent pixel for a more natural grain
+            if (i + 4 < data.length) {
+                data[i + 4] += noise * 0.6;
+                data[i + 5] += noise * 0.6;
+                data[i + 6] += noise * 0.6;
+            }
+        }
+        ctx.putImageData(imageData, 0, 0);
+    }
+    function applyBlurEffect(ctx, canvas) {
+        ctx.filter = `blur(${state.adjustments.blur}px)`;
+        ctx.drawImage(canvas, 0, 0);
+        ctx.filter = 'none';
+    }
+    function drawTexts(ctx, canvas) {
+        state.texts.forEach(t => {
+            const fontStyle = `${t.italic ? 'italic ' : ''}${t.bold ? 'bold ' : ''}${t.size}px ${t.font}`;
+            ctx.font = fontStyle;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            if (t.shadow) {
+                ctx.shadowColor = 'rgba(0,0,0,0.6)';
+                ctx.shadowBlur = 10;
+                ctx.shadowOffsetX = 3;
+                ctx.shadowOffsetY = 3;
+            }
+            ctx.fillStyle = t.color;
+            ctx.fillText(t.text, t.x || canvas.width / 2, t.y || canvas.height / 2);
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+        });
+    }
+    // ==========================================
+    // Filters
+    // ==========================================
+    function setupFilters() {
+        FILTERS.forEach(filter => {
+            const item = document.createElement('div');
+            item.className = `filter-item ${filter.id === 'none' ? 'active' : ''}`;
+            item.dataset.filter = filter.id;
+            item.innerHTML = `
+                <canvas width="100" height="100"></canvas>
+                <div class="filter-name">${filter.name}</div>
+            `;
+            item.addEventListener('click', () => applyFilter(filter.id));
+            dom.filterGrid.appendChild(item);
+        });
+    }
+    function generateFilterPreviews() {
+        if (!state.originalImage) return;
+        const items = dom.filterGrid.querySelectorAll('.filter-item');
+        items.forEach(item => {
+            const filterId = item.dataset.filter;
+            const filter = FILTERS.find(f => f.id === filterId);
+            const previewCanvas = item.querySelector('canvas');
+            const pCtx = previewCanvas.getContext('2d');
+            previewCanvas.width = 100;
+            previewCanvas.height = 100;
+            // Draw scaled preview
+            const img = state.originalImage;
+            const scale = Math.min(100 / img.naturalWidth, 100 / img.naturalHeight);
+            const w = img.naturalWidth * scale;
+            const h = img.naturalHeight * scale;
+            pCtx.drawImage(img, (100 - w) / 2, (100 - h) / 2, w, h);
+            // Apply filter preview
+            if (filter && filter.settings && Object.keys(filter.settings).length > 0) {
+                applyPreviewAdjustments(pCtx, previewCanvas, filter.settings);
+            }
+        });
+    }
+    function applyPreviewAdjustments(ctx, canvas, settings) {
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        const brightness = (settings.brightness || 0) / 100;
+        const contrast = ((settings.contrast || 0) + 100) / 100;
+        const saturation = ((settings.saturation || 0) + 100) / 100;
+        const temperature = (settings.temperature || 0) / 100;
+        const fade = (settings.fade || 0) / 100;
+        for (let i = 0; i < data.length; i += 4) {
+            if (data[i + 3] === 0) continue;
+            let r = data[i];
+            let g = data[i + 1];
+            let b = data[i + 2];
+            r += brightness * 255;
+            g += brightness * 255;
+            b += brightness * 255;
+            r = ((r / 255 - 0.5) * contrast + 0.5) * 255;
+            g = ((g / 255 - 0.5) * contrast + 0.5) * 255;
+            b = ((b / 255 - 0.5) * contrast + 0.5) * 255;
+            r += temperature * 30;
+            b -= temperature * 30;
+            const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+            r = gray + saturation * (r - gray);
+            g = gray + saturation * (g - gray);
+            b = gray + saturation * (b - gray);
+            if (fade > 0) {
+                const fadeAmt = fade * 60;
+                r = r + (fadeAmt - r) * fade * 0.3;
+                g = g + (fadeAmt - g) * fade * 0.3;
+                b = b + (fadeAmt - b) * fade * 0.3;
+            }
+            data[i] = Math.max(0, Math.min(255, r));
+            data[i + 1] = Math.max(0, Math.min(255, g));
+            data[i + 2] = Math.max(0, Math.min(255, b));
+        }
+        ctx.putImageData(imageData, 0, 0);
+    }
+    function applyFilter(filterId) {
+        const filter = FILTERS.find(f => f.id === filterId);
+        if (!filter) return;
+        state.activeFilter = filterId;
+        // Update active states
+        dom.filterGrid.querySelectorAll('.filter-item').forEach(item => {
+            item.classList.toggle('active', item.dataset.filter === filterId);
+        });
+        // Apply filter settings
+        if (filter.settings) {
+            Object.keys(state.adjustments).forEach(key => {
+                state.adjustments[key] = filter.settings[key] || 0;
+            });
+            syncSlidersFromState();
+        }
+        renderCanvas();
+        saveHistory();
+    }
+    // ==========================================
+    // Tones
+    // ==========================================
+    function setupTones() {
+        TONES.forEach(tone => {
+            const item = document.createElement('div');
+            item.className = `filter-item ${tone.id === 'tone_none' ? 'active' : ''}`;
+            item.dataset.tone = tone.id;
+            const colorBg = tone.color
+                ? `rgba(${tone.color[0]}, ${tone.color[1]}, ${tone.color[2]}, 0.3)`
+                : '#2a2a42';
+            item.innerHTML = `
+                <canvas width="100" height="100" style="background:${colorBg}"></canvas>
+                <div class="filter-name">${tone.name}</div>
+            `;
+            item.addEventListener('click', () => applyTone(tone.id));
+            dom.toneGrid.appendChild(item);
+        });
+    }
+    function generateTonePreviews() {
+        if (!state.originalImage) return;
+        const items = dom.toneGrid.querySelectorAll('.filter-item');
+        items.forEach(item => {
+            const toneId = item.dataset.tone;
+            const tone = TONES.find(t => t.id === toneId);
+            const previewCanvas = item.querySelector('canvas');
+            const pCtx = previewCanvas.getContext('2d');
+            previewCanvas.width = 100;
+            previewCanvas.height = 100;
+            const img = state.originalImage;
+            const scale = Math.min(100 / img.naturalWidth, 100 / img.naturalHeight);
+            const w = img.naturalWidth * scale;
+            const h = img.naturalHeight * scale;
+            pCtx.drawImage(img, (100 - w) / 2, (100 - h) / 2, w, h);
+            if (tone && tone.color) {
+                const [r, g, b, a] = tone.color;
+                pCtx.globalCompositeOperation = 'color';
+                pCtx.fillStyle = `rgba(${r}, ${g}, ${b}, ${a * 4})`;
+                pCtx.fillRect(0, 0, 100, 100);
+                pCtx.globalCompositeOperation = 'source-over';
+            }
+        });
+    }
+    function applyTone(toneId) {
+        state.activeTone = toneId;
+        dom.toneGrid.querySelectorAll('.filter-item').forEach(item => {
+            item.classList.toggle('active', item.dataset.tone === toneId);
+        });
+        renderCanvas();
+        saveHistory();
+    }
+    // ==========================================
+    // Sliders
+    // ==========================================
+    function setupSliders() {
+        const sliderMap = {
+            brightnessSlider: { key: 'brightness', suffix: '' },
+            contrastSlider: { key: 'contrast', suffix: '' },
+            exposureSlider: { key: 'exposure', suffix: '' },
+            highlightsSlider: { key: 'highlights', suffix: '' },
+            shadowsSlider: { key: 'shadows', suffix: '' },
+            saturationSlider: { key: 'saturation', suffix: '' },
+            temperatureSlider: { key: 'temperature', suffix: '' },
+            tintSlider: { key: 'tint', suffix: '' },
+            vibranceSlider: { key: 'vibrance', suffix: '' },
+            sharpnessSlider: { key: 'sharpness', suffix: '' },
+            claritySlider: { key: 'clarity', suffix: '' },
+            fadeSlider: { key: 'fade', suffix: '' },
+            grainSlider: { key: 'grain', suffix: '' },
+            vignetteSlider: { key: 'vignette', suffix: '' },
+            blurSlider: { key: 'blur', suffix: '' }
+        };
+        Object.entries(sliderMap).forEach(([sliderId, config]) => {
+            const slider = dom[sliderId];
+            if (!slider) return;
+            let renderTimeout;
+            slider.addEventListener('input', () => {
+                const value = parseInt(slider.value);
+                state.adjustments[config.key] = value;
+                const valueEl = dom[config.key + 'Value'];
+                if (valueEl) valueEl.textContent = value + config.suffix;
+                clearTimeout(renderTimeout);
+                renderTimeout = setTimeout(() => renderCanvas(), 16);
+            });
+            slider.addEventListener('change', () => {
+                saveHistory();
+            });
+        });
+        // Rotation slider
+        if (dom.rotationSlider) {
+            dom.rotationSlider.addEventListener('input', () => {
+                state.rotation = parseInt(dom.rotationSlider.value);
+                dom.rotationValue.textContent = state.rotation + '°';
+                renderCanvas();
+            });
+            dom.rotationSlider.addEventListener('change', () => saveHistory());
+        }
+        // Text size slider
+        if (dom.textSizeSlider) {
+            dom.textSizeSlider.addEventListener('input', () => {
+                state.textSettings.size = parseInt(dom.textSizeSlider.value);
+                dom.textSizeValue.textContent = state.textSettings.size;
+            });
+        }
+        // Quality slider
+        if (dom.qualitySlider) {
+            dom.qualitySlider.addEventListener('input', () => {
+                state.exportQuality = parseInt(dom.qualitySlider.value) / 100;
+                dom.qualityValue.textContent = dom.qualitySlider.value + '%';
+            });
+        }
+    }
+    function syncSlidersFromState() {
+        const adj = state.adjustments;
+        Object.keys(adj).forEach(key => {
+            const slider = dom[key + 'Slider'];
+            const valueEl = dom[key + 'Value'];
+            if (slider) slider.value = adj[key];
+            if (valueEl) valueEl.textContent = adj[key];
+        });
+    }
+    // ==========================================
+    // Crop
+    // ==========================================
+    function setupCrop() {
+        document.querySelectorAll('.ratio-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                state.aspectRatio = btn.dataset.ratio;
+            });
+        });
+        dom.btnApplyCrop.addEventListener('click', applyCrop);
+    }
+    function applyCrop() {
+        if (!state.originalImage) return;
+        const img = state.originalImage;
+        const imgW = img.naturalWidth;
+        const imgH = img.naturalHeight;
+        let cropW, cropH;
+        const ratio = state.aspectRatio;
+        if (ratio === 'free') {
+            renderCanvas();
+            return;
+        }
+        const [rW, rH] = ratio.split(':').map(Number);
+        const targetRatio = rW / rH;
+        const currentRatio = imgW / imgH;
+        if (currentRatio > targetRatio) {
+            cropH = imgH;
+            cropW = imgH * targetRatio;
+        } else {
+            cropW = imgW;
+            cropH = imgW / targetRatio;
+        }
+        const cropX = (imgW - cropW) / 2;
+        const cropY = (imgH - cropH) / 2;
+        // Create new cropped image
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = cropW;
+        tempCanvas.height = cropH;
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCtx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+        const croppedImg = new Image();
+        croppedImg.onload = () => {
+            state.originalImage = croppedImg;
+            renderCanvas();
+            generateFilterPreviews();
+            generateTonePreviews();
+            saveHistory();
+        };
+        croppedImg.src = tempCanvas.toDataURL();
+    }
+    // ==========================================
+    // Transform
+    // ==========================================
+    function setupTransform() {
+        dom.btnFlipH.addEventListener('click', () => {
+            state.flipH = !state.flipH;
+            renderCanvas();
+            saveHistory();
+        });
+        dom.btnFlipV.addEventListener('click', () => {
+            state.flipV = !state.flipV;
+            renderCanvas();
+            saveHistory();
+        });
+    }
+    // ==========================================
+    // Text
+    // ==========================================
+    function setupText() {
+        dom.btnBold.addEventListener('click', () => {
+            state.textSettings.bold = !state.textSettings.bold;
+            dom.btnBold.classList.toggle('active');
+        });
+        dom.btnItalic.addEventListener('click', () => {
+            state.textSettings.italic = !state.textSettings.italic;
+            dom.btnItalic.classList.toggle('active');
+        });
+        dom.btnShadow.addEventListener('click', () => {
+            state.textSettings.shadow = !state.textSettings.shadow;
+            dom.btnShadow.classList.toggle('active');
+        });
+        dom.textColor.addEventListener('input', () => {
+            state.textSettings.color = dom.textColor.value;
+        });
+        dom.fontSelect.addEventListener('change', () => {
+            state.textSettings.font = dom.fontSelect.value;
+        });
+        dom.btnAddText.addEventListener('click', () => {
+            const text = dom.textInput.value.trim();
+            if (!text || !state.originalImage) return;
+            state.texts.push({
+                text: text,
+                size: state.textSettings.size,
+                color: state.textSettings.color,
+                font: state.textSettings.font,
+                bold: state.textSettings.bold,
+                italic: state.textSettings.italic,
+                shadow: state.textSettings.shadow,
+                x: state.canvas.width / 2,
+                y: state.canvas.height / 2
+            });
+            dom.textInput.value = '';
+            renderCanvas();
+            saveHistory();
+        });
+        // Make texts draggable on canvas
+        let draggingText = null;
+        let dragOffset = { x: 0, y: 0 };
+        state.canvas.addEventListener('mousedown', (e) => {
+            if (state.texts.length === 0) return;
+            const rect = state.canvas.getBoundingClientRect();
+            const scaleX = state.canvas.width / rect.width;
+            const scaleY = state.canvas.height / rect.height;
+            const mx = (e.clientX - rect.left) * scaleX;
+            const my = (e.clientY - rect.top) * scaleY;
+            for (let i = state.texts.length - 1; i >= 0; i--) {
+                const t = state.texts[i];
+                const ctx = state.ctx;
+                ctx.font = `${t.italic ? 'italic ' : ''}${t.bold ? 'bold ' : ''}${t.size}px ${t.font}`;
+                const metrics = ctx.measureText(t.text);
+                const tw = metrics.width;
+                const th = t.size;
+                if (mx > t.x - tw / 2 && mx < t.x + tw / 2 &&
+                    my > t.y - th / 2 && my < t.y + th / 2) {
+                    draggingText = i;
+                    dragOffset.x = mx - t.x;
+                    dragOffset.y = my - t.y;
+                    break;
+                }
+            }
+        });
+        state.canvas.addEventListener('mousemove', (e) => {
+            if (draggingText === null) return;
+            const rect = state.canvas.getBoundingClientRect();
+            const scaleX = state.canvas.width / rect.width;
+            const scaleY = state.canvas.height / rect.height;
+            state.texts[draggingText].x = (e.clientX - rect.left) * scaleX - dragOffset.x;
+            state.texts[draggingText].y = (e.clientY - rect.top) * scaleY - dragOffset.y;
+            renderCanvas();
+        });
+        window.addEventListener('mouseup', () => {
+            if (draggingText !== null) {
+                draggingText = null;
+                saveHistory();
+            }
+        });
+    }
+    // ==========================================
+    // Export
+    // ==========================================
+    function setupExport() {
+        dom.btnExport.addEventListener('click', () => {
+            if (!state.originalImage) return;
+            dom.exportModal.classList.remove('hidden');
+        });
+        dom.modalOverlay.addEventListener('click', closeExportModal);
+        dom.btnCancelExport.addEventListener('click', closeExportModal);
+        // Format buttons
+        document.querySelectorAll('.format-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                state.exportFormat = btn.dataset.format;
+                // Show quality slider for lossy formats
+                dom.qualitySection.style.display =
+                    (state.exportFormat === 'jpeg' || state.exportFormat === 'webp') ? 'block' : 'none';
+            });
+        });
+        // Size buttons
+        document.querySelectorAll('.size-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                state.exportSize = btn.dataset.size;
+            });
+        });
+        dom.btnDownload.addEventListener('click', downloadImage);
+    }
+    function closeExportModal() {
+        dom.exportModal.classList.add('hidden');
+    }
+    function downloadImage() {
+        if (!state.originalImage) return;
+        let exportCanvas = state.canvas;
+        // Resize if needed
+        if (state.exportSize !== 'original') {
+            const targetWidth = parseInt(state.exportSize);
+            const scale = targetWidth / state.canvas.width;
+            const targetHeight = state.canvas.height * scale;
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = targetWidth;
+            tempCanvas.height = targetHeight;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.drawImage(state.canvas, 0, 0, targetWidth, targetHeight);
+            exportCanvas = tempCanvas;
+        }
+        let mimeType = 'image/png';
+        let ext = 'png';
+        if (state.exportFormat === 'jpeg') { mimeType = 'image/jpeg'; ext = 'jpg'; }
+        if (state.exportFormat === 'webp') { mimeType = 'image/webp'; ext = 'webp'; }
+        const dataUrl = exportCanvas.toDataURL(mimeType, state.exportQuality);
+        const link = document.createElement('a');
+        link.download = `pixvibe_${state.fileName.replace(/\.[^/.]+$/, '')}_edited.${ext}`;
+        link.href = dataUrl;
+        link.click();
+        closeExportModal();
+    }
+    // ==========================================
+    // Compare
+    // ==========================================
+    function setupCompare() {
+        dom.btnCompare.addEventListener('mousedown', () => {
+            state.isComparing = true;
+            // Show original
+            const ctx = state.ctx;
+            const canvas = state.canvas;
+            canvas.width = state.originalImage.naturalWidth;
+            canvas.height = state.originalImage.naturalHeight;
+            ctx.drawImage(state.originalImage, 0, 0);
+        });
+        dom.btnCompare.addEventListener('mouseup', () => {
+            state.isComparing = false;
+            renderCanvas();
+        });
+        dom.btnCompare.addEventListener('mouseleave', () => {
+            if (state.isComparing) {
+                state.isComparing = false;
+                renderCanvas();
+            }
+        });
+    }
+    // ==========================================
+    // Reset, Undo, Redo
+    // ==========================================
+    function setupResetUndoRedo() {
+        dom.btnReset.addEventListener('click', () => {
+            if (!state.currentImage) return;
+            state.originalImage = state.currentImage;
+            state.activeFilter = 'none';
+            state.activeTone = 'tone_none';
+            state.rotation = 0;
+            state.flipH = false;
+            state.flipV = false;
+            state.texts = [];
+            Object.keys(state.adjustments).forEach(key => {
+                state.adjustments[key] = 0;
+            });
+            syncSlidersFromState();
+            if (dom.rotationSlider) {
+                dom.rotationSlider.value = 0;
+                dom.rotationValue.textContent = '0°';
+            }
+            // Reset filter/tone active states
+            dom.filterGrid.querySelectorAll('.filter-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.filter === 'none');
+            });
+            dom.toneGrid.querySelectorAll('.filter-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.tone === 'tone_none');
+            });
+            renderCanvas();
+            generateFilterPreviews();
+            generateTonePreviews();
+            saveHistory();
+        });
+        dom.btnUndo.addEventListener('click', undo);
+        dom.btnRedo.addEventListener('click', redo);
+    }
+    function saveHistory() {
+        const snapshot = {
+            adjustments: { ...state.adjustments },
+            activeFilter: state.activeFilter,
+            activeTone: state.activeTone,
+            rotation: state.rotation,
+            flipH: state.flipH,
+            flipV: state.flipV,
+            texts: JSON.parse(JSON.stringify(state.texts))
+        };
+        // Remove future history
+        state.history = state.history.slice(0, state.historyIndex + 1);
+        state.history.push(snapshot);
+        state.historyIndex = state.history.length - 1;
+        // Limit history
+        if (state.history.length > 50) {
+            state.history.shift();
+            state.historyIndex--;
+        }
+        updateUndoRedoButtons();
+    }
+    function undo() {
+        if (state.historyIndex <= 0) return;
+        state.historyIndex--;
+        restoreHistory();
+    }
+    function redo() {
+        if (state.historyIndex >= state.history.length - 1) return;
+        state.historyIndex++;
+        restoreHistory();
+    }
+    function restoreHistory() {
+        const snapshot = state.history[state.historyIndex];
+        if (!snapshot) return;
+        state.adjustments = { ...snapshot.adjustments };
+        state.activeFilter = snapshot.activeFilter;
+        state.activeTone = snapshot.activeTone;
+        state.rotation = snapshot.rotation;
+        state.flipH = snapshot.flipH;
+        state.flipV = snapshot.flipV;
+        state.texts = JSON.parse(JSON.stringify(snapshot.texts));
+        syncSlidersFromState();
+        if (dom.rotationSlider) {
+            dom.rotationSlider.value = state.rotation;
+            dom.rotationValue.textContent = state.rotation + '°';
+        }
+        // Update filter/tone active states
+        dom.filterGrid.querySelectorAll('.filter-item').forEach(item => {
+            item.classList.toggle('active', item.dataset.filter === state.activeFilter);
+        });
+        dom.toneGrid.querySelectorAll('.filter-item').forEach(item => {
+            item.classList.toggle('active', item.dataset.tone === state.activeTone);
+        });
+        renderCanvas();
+        updateUndoRedoButtons();
+    }
+    function updateUndoRedoButtons() {
+        dom.btnUndo.disabled = state.historyIndex <= 0;
+        dom.btnRedo.disabled = state.historyIndex >= state.history.length - 1;
+    }
+    // ==========================================
+    // Keyboard Shortcuts
+    // ==========================================
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 'z') { e.preventDefault(); undo(); }
+        if (e.ctrlKey && e.key === 'y') { e.preventDefault(); redo(); }
+        if (e.ctrlKey && e.key === 'e') { e.preventDefault(); dom.btnExport.click(); }
+        if (e.ctrlKey && e.key === 's') { e.preventDefault(); dom.btnExport.click(); }
+    });
+    // ==========================================
+    // Boot
+    // ==========================================
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
