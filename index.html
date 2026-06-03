@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PixVibe — Gen Z Instagram Photo Editor</title>
+    <meta name="description" content="Professional Gen Z aesthetic photo editor for Instagram. Edit, crop, filter, and style your photos.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loader-content">
+            <div class="loader-ring">
+                <div class="ring-segment"></div>
+                <div class="ring-segment"></div>
+                <div class="ring-segment"></div>
+            </div>
+            <h1 class="loader-title">PixVibe</h1>
+            <p class="loader-subtitle">Gen Z Photo Editor</p>
+        </div>
+    </div>
+    <!-- Main App -->
+    <div id="app" class="app hidden">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <div class="logo">
+                    <span class="logo-icon">◆</span>
+                    <span class="logo-text">PixVibe</span>
+                </div>
+            </div>
+            <div class="header-center">
+                <div id="fileName" class="file-name">No file loaded</div>
+            </div>
+            <div class="header-right">
+                <button id="btnUndo" class="header-btn" title="Undo" disabled>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6.69 3L3 13"/></svg>
+                </button>
+                <button id="btnRedo" class="header-btn" title="Redo" disabled>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 019-9 9 9 0 016.69 3L21 13"/></svg>
+                </button>
+                <button id="btnReset" class="header-btn" title="Reset">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+                </button>
+                <div class="divider"></div>
+                <button id="btnExport" class="btn-export">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span>Export</span>
+                </button>
+            </div>
+        </header>
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Upload Screen -->
+            <div id="uploadScreen" class="upload-screen">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    </div>
+                    <h2 class="upload-title">Drop your photo here</h2>
+                    <p class="upload-subtitle">or click to browse • JPG, PNG, WebP</p>
+                    <button class="btn-upload" id="btnUpload">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        Choose Photo
+                    </button>
+                    <input type="file" id="fileInput" accept="image/*" hidden>
+                </div>
+                <div class="upload-presets">
+                    <p class="preset-label">✨ Instagram Sizes</p>
+                    <div class="preset-chips">
+                        <span class="chip active" data-ratio="4:5">4:5 Portrait</span>
+                        <span class="chip" data-ratio="1:1">1:1 Square</span>
+                        <span class="chip" data-ratio="9:16">9:16 Story</span>
+                        <span class="chip" data-ratio="free">Free</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Editor Screen -->
+            <div id="editorScreen" class="editor-screen hidden">
+                <!-- Canvas Area -->
+                <div class="canvas-wrapper">
+                    <div class="canvas-container" id="canvasContainer">
+                        <canvas id="mainCanvas"></canvas>
+                        <!-- Crop Overlay -->
+                        <div id="cropOverlay" class="crop-overlay hidden">
+                            <div class="crop-box" id="cropBox">
+                                <div class="crop-handle top-left"></div>
+                                <div class="crop-handle top-right"></div>
+                                <div class="crop-handle bottom-left"></div>
+                                <div class="crop-handle bottom-right"></div>
+                                <div class="crop-grid">
+                                    <div class="grid-line h1"></div>
+                                    <div class="grid-line h2"></div>
+                                    <div class="grid-line v1"></div>
+                                    <div class="grid-line v2"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="canvas-info">
+                        <span id="canvasSize">0 × 0</span>
+                        <span id="zoomLevel">100%</span>
+                    </div>
+                </div>
+                <!-- Right Panel -->
+                <aside class="panel">
+                    <!-- Tab Navigation -->
+                    <div class="panel-tabs">
+                        <button class="tab active" data-tab="filters" id="tabFilters">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                            <span>Filters</span>
+                        </button>
+                        <button class="tab" data-tab="adjust" id="tabAdjust">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+                            <span>Adjust</span>
+                        </button>
+                        <button class="tab" data-tab="crop" id="tabCrop">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.13 1L6 16a2 2 0 002 2h15"/><path d="M1 6.13L16 6a2 2 0 012 2v15"/></svg>
+                            <span>Crop</span>
+                        </button>
+                        <button class="tab" data-tab="text" id="tabText">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+                            <span>Text</span>
+                        </button>
+                    </div>
+                    <!-- Panel Content -->
+                    <div class="panel-content">
+                        <!-- Filters Tab -->
+                        <div class="tab-content active" id="filtersContent">
+                            <div class="section">
+                                <h3 class="section-title">🔥 Gen Z Presets</h3>
+                                <div class="filter-grid" id="filterGrid">
+                                    <!-- Filters will be generated by JS -->
+                                </div>
+                            </div>
+                            <div class="section">
+                                <h3 class="section-title">🎨 Color Tones</h3>
+                                <div class="filter-grid" id="toneGrid">
+                                    <!-- Tones will be generated by JS -->
+                                </div>
+                            </div>
+                            <div class="section">
+                                <h3 class="section-title">✨ Effects</h3>
+                                <div class="effect-controls">
+                                    <div class="slider-group">
+                                        <label>Film Grain</label>
+                                        <div class="slider-row">
+                                            <input type="range" id="grainSlider" min="0" max="100" value="0" class="slider">
+                                            <span class="slider-value" id="grainValue">0</span>
+                                        </div>
+                                    </div>
+                                    <div class="slider-group">
+                                        <label>Vignette</label>
+                                        <div class="slider-row">
+                                            <input type="range" id="vignetteSlider" min="0" max="100" value="0" class="slider">
+                                            <span class="slider-value" id="vignetteValue">0</span>
+                                        </div>
+                                    </div>
+                                    <div class="slider-group">
+                                        <label>Blur Background</label>
+                                        <div class="slider-row">
+                                            <input type="range" id="blurSlider" min="0" max="20" value="0" class="slider">
+                                            <span class="slider-value" id="blurValue">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Adjust Tab -->
+                        <div class="tab-content" id="adjustContent">
+                            <div class="section">
+                                <h3 class="section-title">💡 Light</h3>
+                                <div class="adjust-controls">
+                                    <div class="slider-group">
+                                        <label>Brightness</label>
+                                        <div class="slider-row">
+                                            <input type="range" id="brightnessSlider" min="-100" max="100" value="0" class="slider">
+                                            <span class="slider-value" id="brightnessValue">0</span>
+                                        </div>
+                                    </div>
+                                    <div class="slider-group">
+                                        <label>Contrast</label>
+                                        <div class="slider-row">
+                                            <input type="range" id="contrastSlider" min="-100" max="100" value="0" class="slider">
+                                            <span class="slider-value" id="contrastValue">0</span>
+                                        </div>
+                                    </div>
+                                    <div class="slider-group">
+                                        <label>Exposure</label>
+                                        <div class="slider-row">
+                                            <input type="range" id="exposureSlider" min="-100" max="100" value="0" class="slider">
+                                            <span class="slider-value" id="exposureValue">0</span>
+                                        </div>
+                                    </div>
+                                    <div class="slider-group">
+                                        <label>Highlights</label>
+                                        <div class="slider-row">
+                                            <input type="range" id="highlightsSlider" min="-100" max="100" value="0" class="slider">
+                                            <span class="slider-value" id="highlightsValue">0</span>
+                                        </div>
+                                    </div>
+                                    <div class="slider-group">
+                                        <label>Shadows</label>
+                                        <div class="slider-row">
+                                            <input type="range" id="shadowsSlider" min="-100" max="100" value="0" class="slider">
+                                            <span class="slider-value" id="shadowsValue">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="section">
+                                <h3 class="section-title">🎨 Color</h3>
+                                <div class="adjust-controls">
+                                    <div class="slider-group">
+                                        <label>Saturation</label>
+                                        <div class="slider-row">
+                                            <input type="range" id="saturationSlider" min="-100" max="100" value="0" class="slider">
+                                            <span class="slider-value" id="saturationValue">0</span>
+                                        </div>
+                                    </div>
+                                    <div class="slider-group">
+                                        <label>Temperature</label>
+                                        <div class="slider-row">
+                                            <input type="range" id="temperatureSlider" min="-100" max="100" value="0" class="slider">
+                                            <span class="slider-value" id="temperatureValue">0</span>
+                                        </div>
+                                    </div>
+                                    <div class="slider-group">
+                                        <label>Tint</label>
+                                        <div class="slider-row">
+                                            <input type="range" id="tintSlider" min="-100" max="100" value="0" class="slider">
+                                            <span class="slider-value" id="tintValue">0</span>
+                                        </div>
+                                    </div>
+                                    <div class="slider-group">
+                                        <label>Vibrance</label>
+                                        <div class="slider-row">
+                                            <input type="range" id="vibranceSlider" min="-100" max="100" value="0" class="slider">
+                                            <span class="slider-value" id="vibranceValue">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="section">
+                                <h3 class="section-title">🔍 Detail</h3>
+                                <div class="adjust-controls">
+                                    <div class="slider-group">
+                                        <label>Sharpness</label>
+                                        <div class="slider-row">
+                                            <input type="range" id="sharpnessSlider" min="0" max="100" value="0" class="slider">
+                                            <span class="slider-value" id="sharpnessValue">0</span>
+                                        </div>
+                                    </div>
+                                    <div class="slider-group">
+                                        <label>Clarity</label>
+                                        <div class="slider-row">
+                                            <input type="range" id="claritySlider" min="-100" max="100" value="0" class="slider">
+                                            <span class="slider-value" id="clarityValue">0</span>
+                                        </div>
+                                    </div>
+                                    <div class="slider-group">
+                                        <label>Fade</label>
+                                        <div class="slider-row">
+                                            <input type="range" id="fadeSlider" min="0" max="100" value="0" class="slider">
+                                            <span class="slider-value" id="fadeValue">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Crop Tab -->
+                        <div class="tab-content" id="cropContent">
+                            <div class="section">
+                                <h3 class="section-title">📐 Aspect Ratio</h3>
+                                <div class="crop-ratios">
+                                    <button class="ratio-btn active" data-ratio="4:5" id="ratio4x5">
+                                        <div class="ratio-preview" style="width:24px;height:30px;"></div>
+                                        <span>4:5</span>
+                                        <small>IG Post</small>
+                                    </button>
+                                    <button class="ratio-btn" data-ratio="1:1" id="ratio1x1">
+                                        <div class="ratio-preview" style="width:28px;height:28px;"></div>
+                                        <span>1:1</span>
+                                        <small>Square</small>
+                                    </button>
+                                    <button class="ratio-btn" data-ratio="9:16" id="ratio9x16">
+                                        <div class="ratio-preview" style="width:18px;height:32px;"></div>
+                                        <span>9:16</span>
+                                        <small>Story</small>
+                                    </button>
+                                    <button class="ratio-btn" data-ratio="16:9" id="ratio16x9">
+                                        <div class="ratio-preview" style="width:32px;height:18px;"></div>
+                                        <span>16:9</span>
+                                        <small>Wide</small>
+                                    </button>
+                                    <button class="ratio-btn" data-ratio="free" id="ratioFree">
+                                        <div class="ratio-preview free" style="width:28px;height:22px;"></div>
+                                        <span>Free</span>
+                                        <small>Custom</small>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="section">
+                                <h3 class="section-title">🔄 Transform</h3>
+                                <div class="adjust-controls">
+                                    <div class="slider-group">
+                                        <label>Rotation</label>
+                                        <div class="slider-row">
+                                            <input type="range" id="rotationSlider" min="-180" max="180" value="0" class="slider">
+                                            <span class="slider-value" id="rotationValue">0°</span>
+                                        </div>
+                                    </div>
+                                    <div class="transform-btns">
+                                        <button class="transform-btn" id="btnFlipH" title="Flip Horizontal">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M21 3l-7 7"/><path d="M3 3l7 7"/><path d="M16 21h5v-5"/><path d="M8 21H3v-5"/><path d="M21 21l-7-7"/><path d="M3 21l7-7"/></svg>
+                                            Flip H
+                                        </button>
+                                        <button class="transform-btn" id="btnFlipV" title="Flip Vertical">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 16v5h5"/><path d="M3 8V3h5"/><path d="M3 21l7-7"/><path d="M3 3l7 7"/><path d="M21 16v5h-5"/><path d="M21 8V3h-5"/><path d="M21 21l-7-7"/><path d="M21 3l-7 7"/></svg>
+                                            Flip V
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="section">
+                                <button class="btn-apply-crop" id="btnApplyCrop">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                    Apply Crop
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Text Tab -->
+                        <div class="tab-content" id="textContent">
+                            <div class="section">
+                                <h3 class="section-title">✏️ Add Text</h3>
+                                <div class="text-controls">
+                                    <input type="text" id="textInput" class="text-input" placeholder="Type your text...">
+                                    <div class="text-options">
+                                        <div class="slider-group">
+                                            <label>Size</label>
+                                            <div class="slider-row">
+                                                <input type="range" id="textSizeSlider" min="12" max="120" value="32" class="slider">
+                                                <span class="slider-value" id="textSizeValue">32</span>
+                                            </div>
+                                        </div>
+                                        <div class="color-row">
+                                            <label>Color</label>
+                                            <input type="color" id="textColor" value="#ffffff" class="color-picker">
+                                        </div>
+                                        <div class="font-select-group">
+                                            <label>Font</label>
+                                            <select id="fontSelect" class="font-select">
+                                                <option value="Inter">Inter</option>
+                                                <option value="Space Grotesk">Space Grotesk</option>
+                                                <option value="Georgia">Georgia</option>
+                                                <option value="Courier New">Courier New</option>
+                                            </select>
+                                        </div>
+                                        <div class="text-style-btns">
+                                            <button class="style-btn" id="btnBold" title="Bold">B</button>
+                                            <button class="style-btn" id="btnItalic" title="Italic"><em>I</em></button>
+                                            <button class="style-btn" id="btnShadow" title="Shadow">S</button>
+                                        </div>
+                                    </div>
+                                    <button class="btn-add-text" id="btnAddText">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                        Add Text to Photo
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </main>
+        <!-- Export Modal -->
+        <div id="exportModal" class="modal hidden">
+            <div class="modal-overlay" id="modalOverlay"></div>
+            <div class="modal-content">
+                <h2 class="modal-title">Export Photo</h2>
+                <div class="export-options">
+                    <div class="export-format">
+                        <label>Format</label>
+                        <div class="format-btns">
+                            <button class="format-btn active" data-format="png" id="fmtPng">PNG</button>
+                            <button class="format-btn" data-format="jpeg" id="fmtJpeg">JPEG</button>
+                            <button class="format-btn" data-format="webp" id="fmtWebp">WebP</button>
+                        </div>
+                    </div>
+                    <div class="export-quality" id="qualitySection">
+                        <label>Quality</label>
+                        <div class="slider-row">
+                            <input type="range" id="qualitySlider" min="10" max="100" value="95" class="slider">
+                            <span class="slider-value" id="qualityValue">95%</span>
+                        </div>
+                    </div>
+                    <div class="export-size">
+                        <label>Size Preset</label>
+                        <div class="size-btns">
+                            <button class="size-btn active" data-size="original" id="sizeOriginal">Original</button>
+                            <button class="size-btn" data-size="1080" id="size1080">1080px (IG)</button>
+                            <button class="size-btn" data-size="2048" id="size2048">2048px (HQ)</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-cancel" id="btnCancelExport">Cancel</button>
+                    <button class="btn-download" id="btnDownload">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Download
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Compare toggle -->
+        <button id="btnCompare" class="btn-compare hidden" title="Hold to see original">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+        </button>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
